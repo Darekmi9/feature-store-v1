@@ -9,6 +9,7 @@ from feature_store.config import settings
 from feature_store.core.registry.db import SessionLocal
 from feature_store.core.registry.models import Feature, FeatureVersion
 from feature_store.core.storage import get_artifact_store
+from feature_store.integrations.mlflow_utils import MLflowLogger
 
 class FeatureStore:
     def __init__(self):
@@ -126,6 +127,21 @@ class FeatureStore:
             session.add(new_version)
             session.commit()
             session.refresh(new_version)
+            
+            try:
+                logger = MLflowLogger()
+                logger.log_feature_version(
+                    feature_name=feature_name,
+                    version=new_version_str,
+                    params={
+                        "path": parquet_path,
+                        "owner": feature.owner,
+                        "row_count": stats_profile.get("row_count", 0)
+                    },
+                    metrics=stats_profile
+                )
+            except Exception as e:
+                print(f"Warning: Failed to log to MLflow: {e}")
             
             print(f"Successfully ingested {feature_name} version {new_version_str}")
             return new_version

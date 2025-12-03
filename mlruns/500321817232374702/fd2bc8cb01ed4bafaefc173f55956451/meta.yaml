@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/chiti/GitHub/feature-store-v1/feature-store-v1/mlruns/500321817232374702/fd2bc8cb01ed4bafaefc173f55956451/artifacts
+end_time: 1764758747586
+entry_point_name: ''
+experiment_id: '500321817232374702'
+lifecycle_stage: active
+run_id: fd2bc8cb01ed4bafaefc173f55956451
+run_name: mlflow_test_feature_v1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1764758747309
+status: 3
+tags: []
+user_id: chiti
