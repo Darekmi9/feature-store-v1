@@ -1,4 +1,3 @@
-```markdown
 # 🚀 Production-Grade Feature Store
 
 [![Feature Store CI](https://github.com/harshithluc073/feature-store-v1/actions/workflows/ci.yml/badge.svg)](https://github.com/harshithluc073/feature-store-v1/actions/workflows/ci.yml)
@@ -171,4 +170,3 @@ feature-store-v1/
 ## 📄 License
 
 This project is licensed under the MIT License.
-```
