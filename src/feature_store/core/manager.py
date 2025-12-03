@@ -1,8 +1,12 @@
+import os
+import pandas as pd
 from typing import List, Optional
+from datetime import datetime
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from feature_store.config import settings
 from feature_store.core.registry.db import SessionLocal
 from feature_store.core.registry.models import Feature, FeatureVersion
+from feature_store.core.storage import get_artifact_store
 
 class FeatureStore:
     def __init__(self):
@@ -60,5 +64,65 @@ class FeatureStore:
         session: Session = SessionLocal()
         try:
             return session.query(Feature).filter(Feature.name == name).first()
+        finally:
+            session.close()
+            
+    def ingest_feature_data(self, feature_name: str, df: pd.DataFrame, commit_hash: str = None) -> FeatureVersion:
+        """
+        Version and save a feature dataframe.
+        1. Determines next version number (v1 -> v2)
+        2. Writes Parquet file to storage
+        3. Updates metadata registry
+        """
+        session: Session = SessionLocal()
+        store = get_artifact_store()
+        
+        try:
+            # 1. Get Feature
+            feature = session.query(Feature).filter(Feature.name == feature_name).first()
+            if not feature:
+                raise ValueError(f"Feature '{feature_name}' not found. Register it first.")
+
+            # 2. Determine Version
+            # Get latest version for this feature
+            latest_ver = session.query(FeatureVersion)\
+                .filter(FeatureVersion.feature_id == feature.id)\
+                .order_by(FeatureVersion.id.desc())\
+                .first()
+            
+            if latest_ver:
+                # Extract number from "v1", "v2" -> increment
+                curr_num = int(latest_ver.version.replace("v", ""))
+                new_version_str = f"v{curr_num + 1}"
+            else:
+                new_version_str = "v1"
+
+            # 3. Define Storage Path
+            # data/features/feature_name/v1.parquet
+            relative_path = f"{feature_name}/{new_version_str}.parquet"
+            full_path = str(settings.feature_store_path / relative_path)
+
+            # 4. Write Data (Parquet)
+            print(f"Writing data to {full_path}...")
+            store.write_dataset(df, full_path)
+
+            # 5. Register Version in DB
+            new_version = FeatureVersion(
+                feature_id=feature.id,
+                version=new_version_str,
+                path=full_path,
+                git_commit_hash=commit_hash,
+                computed_at=datetime.utcnow()
+            )
+            session.add(new_version)
+            session.commit()
+            session.refresh(new_version)
+            
+            print(f"Successfully ingested {feature_name} version {new_version_str}")
+            return new_version
+
+        except Exception as e:
+            session.rollback()
+            raise e
         finally:
             session.close()
