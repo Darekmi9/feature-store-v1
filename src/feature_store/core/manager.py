@@ -2,6 +2,8 @@ import os
 import pandas as pd
 from typing import List, Optional
 from datetime import datetime
+import json
+from feature_store.core.quality.profiler import calculate_statistics
 from sqlalchemy.orm import Session, joinedload
 from feature_store.config import settings
 from feature_store.core.registry.db import SessionLocal
@@ -73,10 +75,7 @@ class FeatureStore:
             
     def ingest_feature_data(self, feature_name: str, df: pd.DataFrame, commit_hash: str = None) -> FeatureVersion:
         """
-        Version and save a feature dataframe.
-        1. Determines next version number (v1 -> v2)
-        2. Writes Parquet file to storage
-        3. Updates metadata registry
+        Version and save a feature dataframe with automated profiling.
         """
         session: Session = SessionLocal()
         store = get_artifact_store()
@@ -88,33 +87,39 @@ class FeatureStore:
                 raise ValueError(f"Feature '{feature_name}' not found. Register it first.")
 
             # 2. Determine Version
-            # Get latest version for this feature
             latest_ver = session.query(FeatureVersion)\
                 .filter(FeatureVersion.feature_id == feature.id)\
                 .order_by(FeatureVersion.id.desc())\
                 .first()
             
             if latest_ver:
-                # Extract number from "v1", "v2" -> increment
                 curr_num = int(latest_ver.version.replace("v", ""))
                 new_version_str = f"v{curr_num + 1}"
             else:
                 new_version_str = "v1"
 
-            # 3. Define Storage Path
-            # data/features/feature_name/v1.parquet
-            relative_path = f"{feature_name}/{new_version_str}.parquet"
-            full_path = str(settings.feature_store_path / relative_path)
+            # 3. Define Paths
+            base_rel_path = f"{feature_name}/{new_version_str}"
+            parquet_path = str(settings.feature_store_path / f"{base_rel_path}.parquet")
+            stats_path = str(settings.feature_store_path / f"{base_rel_path}_stats.json")
 
-            # 4. Write Data (Parquet)
-            print(f"Writing data to {full_path}...")
-            store.write_dataset(df, full_path)
+            # 4. Calculate Statistics (The new Quality Step)
+            print(f"Profiling data for {feature_name}...")
+            stats_profile = calculate_statistics(df)
+            
+            # 5. Write Data & Stats
+            print(f"Writing data to {parquet_path}...")
+            store.write_dataset(df, parquet_path)
+            
+            # Write stats JSON (Using standard IO for now)
+            with open(stats_path, 'w') as f:
+                json.dump(stats_profile, f, indent=4)
 
-            # 5. Register Version in DB
+            # 6. Register Version in DB
             new_version = FeatureVersion(
                 feature_id=feature.id,
                 version=new_version_str,
-                path=full_path,
+                path=parquet_path,
                 git_commit_hash=commit_hash,
                 computed_at=datetime.utcnow()
             )
@@ -130,6 +135,7 @@ class FeatureStore:
             raise e
         finally:
             session.close()
+
     def get_feature_data(self, feature_name: str, version: str = None) -> pd.DataFrame:
         """
         Retrieve data for a specific feature.
@@ -184,3 +190,29 @@ class FeatureStore:
         
         # Return as dictionary (JSON-like for API)
         return record.iloc[0].to_dict()
+    
+    def get_feature_stats(self, feature_name: str, version: str) -> dict:
+        """Retrieve the statistical profile for a specific feature version"""
+        session: Session = SessionLocal()
+        try:
+            # Find the version
+            feature = session.query(Feature).filter(Feature.name == feature_name).first()
+            if not feature: raise ValueError("Feature not found")
+            
+            ver_obj = session.query(FeatureVersion)\
+                .filter(FeatureVersion.feature_id == feature.id, FeatureVersion.version == version)\
+                .first()
+            
+            if not ver_obj: raise ValueError("Version not found")
+            
+            # Derive stats path from parquet path
+            # e.g., .../v1.parquet -> .../v1_stats.json
+            stats_path = ver_obj.path.replace(".parquet", "_stats.json")
+            
+            if not os.path.exists(stats_path):
+                return {"error": "Stats file not found"}
+                
+            with open(stats_path, 'r') as f:
+                return json.load(f)
+        finally:
+            session.close()
