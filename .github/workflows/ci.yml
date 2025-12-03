@@ -23,9 +23,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest
+        # Install the project itself so 'feature_store' is importable
+        pip install -e .
 
     - name: Run Tests
       run: |
-        # Set python path to current directory
-        export PYTHONPATH=$PYTHONPATH:.
         pytest tests/test_flow.py
