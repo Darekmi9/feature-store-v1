@@ -2,8 +2,14 @@ import pytest
 import pandas as pd
 import os
 from feature_store import FeatureStore
+# Import the database initialization function
+from feature_store.core.registry.db import init_db
 
 def test_full_flow():
+    # 0. Setup Environment (Crucial for CI/CD)
+    # This creates the 'data/' directory and the SQLite tables
+    init_db()
+
     # 1. Initialize
     fs = FeatureStore()
     feat_name = "ci_test_feature"
