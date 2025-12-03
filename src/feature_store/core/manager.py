@@ -130,3 +130,57 @@ class FeatureStore:
             raise e
         finally:
             session.close()
+    def get_feature_data(self, feature_name: str, version: str = None) -> pd.DataFrame:
+        """
+        Retrieve data for a specific feature.
+        If version is None, fetches the latest version.
+        """
+        session: Session = SessionLocal()
+        store = get_artifact_store()
+        try:
+            # 1. Find Feature
+            feature = session.query(Feature).filter(Feature.name == feature_name).first()
+            if not feature:
+                raise ValueError(f"Feature '{feature_name}' not found.")
+
+            # 2. Determine Version
+            if version:
+                ver_obj = session.query(FeatureVersion)\
+                    .filter(FeatureVersion.feature_id == feature.id, FeatureVersion.version == version)\
+                    .first()
+            else:
+                # Get latest
+                ver_obj = session.query(FeatureVersion)\
+                    .filter(FeatureVersion.feature_id == feature.id)\
+                    .order_by(FeatureVersion.id.desc())\
+                    .first()
+            
+            if not ver_obj:
+                raise ValueError(f"No data found for feature '{feature_name}' (Version: {version or 'Latest'})")
+
+            # 3. Read Data
+            print(f"Loading data from {ver_obj.path}...")
+            return store.read_dataset(ver_obj.path)
+
+        finally:
+            session.close()
+
+    def get_online_value(self, feature_name: str, entity_id: any, entity_key: str = "user_id") -> dict:
+        """
+        Simulates online retrieval by fetching the latest value for a specific entity.
+        Note: In production, this would usually hit a low-latency store like Redis.
+        """
+        # Load latest dataframe (Cached implementation would be better here for prod)
+        df = self.get_feature_data(feature_name)
+        
+        # Filter for the entity
+        if entity_key not in df.columns:
+            raise ValueError(f"Entity key '{entity_key}' not found in feature data.")
+
+        record = df[df[entity_key] == entity_id]
+        
+        if record.empty:
+            return None
+        
+        # Return as dictionary (JSON-like for API)
+        return record.iloc[0].to_dict()
